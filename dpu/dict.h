@@ -22,7 +22,7 @@ typedef struct dict {
     unsigned int sizemask;
     unsigned int used;
     mram_allocator *allocator;
-    __mram_ptr dictEntry *table[DICT_HT_INITIAL_SIZE];
+    __mram_ptr unsigned int *table;
 } dict;
 
 /* ------------------------------- Macros ------------------------------------*/

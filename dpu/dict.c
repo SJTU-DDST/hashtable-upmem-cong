@@ -4,7 +4,7 @@
 static void _dictReset(dict *ht)
 {
     ht->used = 0;
-    memset(ht->table, 0, ht->size * sizeof(__mram_ptr dictEntry *));
+    memset(ht->table, 0, ht->size * sizeof(unsigned int));
 }
 /* -------------------------- private prototypes ---------------------------- */
 
@@ -54,7 +54,8 @@ int dictInit(dict *ht, mram_allocator *alloc)
     ht->sizemask = ht->size - 1;
     ht->used = 0;
     ht->allocator = alloc;
-    memset(ht->table, 0, ht->size * sizeof(__mram_ptr dictEntry *));
+    ht->table = (__mram_ptr unsigned int *)mram_alloc(ht->allocator, sizeof(unsigned int) * ht->size);
+    memset(ht->table, 0, ht->size * sizeof(unsigned int));
     return DICT_OK;
 }
 
@@ -75,8 +76,8 @@ int dictAdd(dict *ht, __mram_ptr char *key_, unsigned int key_len, __mram_ptr ch
 
     /* Allocates the memory and stores key */
     entry = (__mram_ptr dictEntry *)mram_alloc(ht->allocator, sizeof(dictEntry));
-    entry->next = ht->table[index];
-    ht->table[index] = entry;
+    entry->next = (__mram_ptr dictEntry *)(ht->table[index]);
+    ht->table[index] = (unsigned int)entry;
 
     /* Set the hash entry fields. */
     _dictSetHashKey(ht, entry, key);
@@ -118,7 +119,7 @@ static int dictGenericDelete(dict *ht, __mram_ptr char *key_, unsigned int key_l
     if (ht->size == 0)
         return DICT_ERR;
     h = bucket;
-    he = ht->table[h];
+    he = (__mram_ptr dictEntry *)(ht->table[h]);
 
     prevHe = NULL;
     while (he)
@@ -129,7 +130,7 @@ static int dictGenericDelete(dict *ht, __mram_ptr char *key_, unsigned int key_l
             if (prevHe)
                 prevHe->next = he->next;
             else
-                ht->table[h] = he->next;
+                ht->table[h] = (unsigned int)(he->next);
             if (!nofree)
             {
                 dictFreeEntryKey(ht, he);
@@ -160,7 +161,7 @@ int _dictClear(dict *ht)
     {
         __mram_ptr dictEntry *he, *nextHe;
 
-        if ((he = ht->table[i]) == (__mram_ptr dictEntry *)NULL)
+        if ((he = (__mram_ptr dictEntry *)(ht->table[i])) == (__mram_ptr dictEntry *)NULL)
             continue;
         while (he)
         {
@@ -194,7 +195,7 @@ __mram_ptr dictEntry *dictFind(dict *ht, __mram_ptr char *key_, unsigned int key
     if (ht->size == 0)
         return (__mram_ptr dictEntry *)NULL;
     h = bucket;
-    he = ht->table[h];
+    he = (__mram_ptr dictEntry *)(ht->table[h]);
     while (he)
     {
         if (dictCompareHashKeys(key, he->key))
@@ -230,7 +231,7 @@ static int _dictKeyIndex(dict *ht, const char *key, unsigned int bucket)
     /* Compute the key hash value */
     h = bucket;
     /* Search if this slot does not already contain the given key */
-    he = ht->table[h];
+    he = (__mram_ptr dictEntry *)(ht->table[h]);
     while (he)
     {
         if (dictCompareHashKeys(key, he->key))
