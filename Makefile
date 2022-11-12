@@ -24,7 +24,7 @@ clean:
 ###
 ### HOST APPLICATION
 ###
-CFLAGS=-g -O2 -std=c99 `dpu-pkg-config --cflags dpu`-DNR_TASKLETS=${NR_TASKLETS}
+CFLAGS=-g -O2 -std=c99 `dpu-pkg-config --cflags --libs dpu` -DNR_TASKLETS=${NR_TASKLETS}
 LDFLAGS=`dpu-pkg-config --libs dpu`
 
 ${HOST_BINARY}: ${HOST_SOURCES} ${HOST_HEADERS} ${DPU_BINARY}
