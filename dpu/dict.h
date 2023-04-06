@@ -10,10 +10,15 @@
 #define DICT_HT_INITIAL_SIZE     32
 #include "mram_alloc.h"
 #include "mram_str.h"
+typedef struct Node 
+{
+    char val[10];
+} Node;
+typedef unsigned long long NodePtr;
 
 typedef struct dictEntry {
     __mram_ptr mram_str *key;
-    __mram_ptr mram_str *val;
+    NodePtr val;
     __mram_ptr struct dictEntry *next;
 } dictEntry;
 
@@ -26,7 +31,7 @@ typedef struct dict {
 } dict;
 
 /* ------------------------------- Macros ------------------------------------*/
-#define dictFreeEntryVal(ht, entry) mram_free(ht->allocator,entry->val)
+// #define dictFreeEntryVal(ht, entry) mram_free(ht->allocator,entry->val)
 #define dictSetHashVal(ht, entry, _val_) _dictSetHashVal(ht, entry, _val_)
 #define dictFreeEntryKey(ht, entry) mram_free(ht->allocator,entry->key)
 #define dictSetHashKey(ht, entry, _key_) _dictSetHashKey(ht, entry, _key_)
@@ -42,9 +47,9 @@ typedef struct dict {
 
 /* API */
 int dictInit(dict *ht,mram_allocator *alloc);
-int dictAdd(dict *ht, __mram_ptr char *key_,unsigned int key_len, __mram_ptr char *val_,unsigned int val_len,unsigned int bucket);
-int dictReplace(dict *ht, __mram_ptr char *key_,unsigned int key_len, __mram_ptr char *val_,unsigned int val_len,unsigned int bucket);
-int dictDelete(dict *ht,__mram_ptr char *key_,unsigned int key_len,unsigned int bucket);
+int dictAdd(dict *ht, __mram_ptr char *key_,unsigned int key_len, NodePtr val_, unsigned int bucket);
+int dictReplace(dict *ht, __mram_ptr char *key_,unsigned int key_len, NodePtr val_, unsigned int bucket);
+int dictDelete(dict *ht,__mram_ptr char *key_,unsigned int key_len, unsigned int bucket);
 void dictRelease(dict *ht);
 __mram_ptr dictEntry * dictFind(dict *ht,__mram_ptr char *key_,unsigned int key_len,unsigned int bucket);
 unsigned int dictGenHashFunction(const char *buf, int len);

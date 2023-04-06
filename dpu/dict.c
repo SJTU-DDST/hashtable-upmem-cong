@@ -11,7 +11,7 @@ static void _dictReset(dict *ht)
 static unsigned int _dictNextPower(unsigned int size);
 static int _dictKeyIndex(dict *ht, const char *key, unsigned int bucket);
 static void _dictSetHashKey(dict *ht, __mram_ptr dictEntry *entry, const char *key_);
-static void _dictSetHashVal(dict *ht, __mram_ptr dictEntry *entry, const char *val_);
+static void _dictSetHashVal(dict *ht, __mram_ptr dictEntry *entry, NodePtr val_);
 static unsigned int _dictStringCopyHTHashFunction(const char *key);
 static int _dictStringCopyHTKeyCompare(const char *key1, const __mram_ptr mram_str *key2_);
 
@@ -60,15 +60,15 @@ int dictInit(dict *ht, mram_allocator *alloc)
 }
 
 /* Add an element to the target hash table */
-int dictAdd(dict *ht, __mram_ptr char *key_, unsigned int key_len, __mram_ptr char *val_, unsigned int val_len, unsigned int bucket)
+int dictAdd(dict *ht, __mram_ptr char *key_, unsigned int key_len, NodePtr val_, unsigned int bucket)
 {
     int index;
     __mram_ptr dictEntry *entry;
 
     char key[KEY_BUF_SIZE];
-    char val[VAL_BUF_SIZE];
+    // char val[VAL_BUF_SIZE];
     mram_str_copy_to(key, key_, key_len + 1);
-    mram_str_copy_to(val, val_, val_len + 1);
+    // mram_str_copy_to(val, val_, val_len + 1);
     /* Get the index of the new element, or -1 if
      * the element already exists. */
     if ((index = _dictKeyIndex(ht, key, bucket)) == -1)
@@ -81,14 +81,14 @@ int dictAdd(dict *ht, __mram_ptr char *key_, unsigned int key_len, __mram_ptr ch
 
     /* Set the hash entry fields. */
     _dictSetHashKey(ht, entry, key);
-    _dictSetHashVal(ht, entry, val);
+    _dictSetHashVal(ht, entry, val_);
 
     ht->used++;
     return DICT_OK;
 }
 
 /* Add an element, discarding the old if the key already exists */
-int dictReplace(dict *ht, __mram_ptr char *key_, unsigned int key_len, __mram_ptr char *val_, unsigned int val_len, unsigned int bucket)
+int dictReplace(dict *ht, __mram_ptr char *key_, unsigned int key_len, NodePtr val_, unsigned int bucket)
 {
     __mram_ptr dictEntry *entry;
 
@@ -96,15 +96,15 @@ int dictReplace(dict *ht, __mram_ptr char *key_, unsigned int key_len, __mram_pt
      * does not exists dictAdd will suceed. */
     // if (dictAdd(ht, key_, key_len, val_, val_len, bucket) == DICT_OK)
     //     return DICT_OK;
-    char val[VAL_BUF_SIZE];
-    mram_str_copy_to(val, val_, val_len + 1);
+    // char val[VAL_BUF_SIZE];
+    // mram_str_copy_to(val, val_, val_len + 1);
     /* It already exists, get the entry */
     entry = dictFind(ht, key_, key_len, bucket);
     if (!entry)
         return DICT_ERR;
     /* Free the old value and set the new one */
-    dictFreeEntryVal(ht, entry);
-    dictSetHashVal(ht, entry, val);
+    // dictFreeEntryVal(ht, entry);
+    dictSetHashVal(ht, entry, val_);
     return DICT_OK;
 }
 
@@ -134,7 +134,7 @@ static int dictGenericDelete(dict *ht, __mram_ptr char *key_, unsigned int key_l
             if (!nofree)
             {
                 dictFreeEntryKey(ht, he);
-                dictFreeEntryVal(ht, he);
+                // dictFreeEntryVal(ht, he);
             }
             dictFreeEntry(ht, he);
             ht->used--;
@@ -167,7 +167,7 @@ int _dictClear(dict *ht)
         {
             nextHe = he->next;
             dictFreeEntryKey(ht, he);
-            dictFreeEntryVal(ht, he);
+            // dictFreeEntryVal(ht, he);
             dictFreeEntry(ht, he);
             ht->used--;
             he = nextHe;
@@ -266,8 +266,7 @@ static void _dictSetHashKey(dict *ht, __mram_ptr dictEntry *entry, const char *k
     entry->key = key;
 }
 
-static void _dictSetHashVal(dict *ht, __mram_ptr dictEntry *entry, const char *val_)
+static void _dictSetHashVal(dict *ht, __mram_ptr dictEntry *entry, NodePtr val_)
 {
-    __mram_ptr mram_str *val = mram_str_new(ht->allocator, val_);
-    entry->val = val;
+    entry->val = val_;
 }

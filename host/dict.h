@@ -15,8 +15,8 @@ typedef struct dict {
 
 /* API */
 dict * dictInit();
-int dictAdd(dict *ht, request_batch* rqst, const char *key_, const char *val_);
-int dictReplace(dict *ht,request_batch* rqst, const char *key_, const char *val_);
+int dictAdd(dict *ht, request_batch* rqst, const char *key_, NodePtr val_);
+int dictReplace(dict *ht,request_batch* rqst, const char *key_, NodePtr val_);
 int dictDelete(dict *ht, request_batch* rqst,const char *key_);
 int dictFind(dict *ht,request_batch* rqst,const char *key_);
 unsigned int dictGenHashFunction(const char *buf, int len);

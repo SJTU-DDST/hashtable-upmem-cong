@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "dict.h"
 
 static unsigned int _dictNextPower(unsigned int size);
@@ -44,18 +43,18 @@ dict *dictInit()
 }
 
 /* Add an element to the target hash table */
-int dictAdd(dict *ht, request_batch *rqst, const char *key_, const char *val_)
+int dictAdd(dict *ht, request_batch *rqst, const char *key_, NodePtr node_)
 {
     int index;
 
     index = _dictKeyIndex(ht, key_);
 
-    requestAdd(rqst, index / DICT_HT_INITIAL_SIZE_PER_PDU, INSERT, index % DICT_HT_INITIAL_SIZE_PER_PDU, key_, val_);
+    requestAdd(rqst, index / DICT_HT_INITIAL_SIZE_PER_PDU, INSERT, index % DICT_HT_INITIAL_SIZE_PER_PDU, key_, node_);
     return DICT_OK;
 }
 
 /* Add an element, discarding the old if the key already exists */
-int dictReplace(dict *ht, request_batch *rqst, const char *key_, const char *val_)
+int dictReplace(dict *ht, request_batch *rqst, const char *key_, NodePtr val_)
 {
     int index;
 

@@ -4,9 +4,16 @@
 #include <stdio.h>
 #include "dict.h"
 #include "connect.h"
+#include <stdlib.h>
+#include <time.h>
+
 #ifndef DPU_BINARY
 #define DPU_BINARY "./dpu_task"
 #endif
+
+#define KEY_NUM (1 << 5)
+
+Node* node;
 
 int main()
 {
@@ -16,19 +23,38 @@ int main()
     request_batch *rqst = requestInit();
     response_batch *rpse = responseInit();
     dict *dt = dictInit();
-    dictAdd(dt, rqst, "kkk", "kkkk");
-    dictFind(dt, rqst, "kkk");
-    dictReplace(dt, rqst, "kkk", "KKKK");
-    dictFind(dt, rqst, "kkk");
-    dictDelete(dt, rqst, "kkk");
-    dictFind(dt, rqst, "kkk");
 
-    dictAdd(dt, rqst, "abc", "abcd");
-    dictFind(dt, rqst, "abc");
-    dictReplace(dt, rqst, "abc", "ABCD");
-    dictFind(dt, rqst, "abc");
-    dictDelete(dt, rqst, "abc");
-    dictFind(dt, rqst, "abc");
+    node = (Node *)malloc(sizeof(Node) * KEY_NUM);
+
+    // dictAdd(dt, rqst, "kkk", "kkkk");
+    // dictFind(dt, rqst, "kkk");
+    // dictReplace(dt, rqst, "kkk", "KKKK");
+    // dictFind(dt, rqst, "kkk");
+    // dictDelete(dt, rqst, "kkk");
+    // dictFind(dt, rqst, "kkk");
+
+    // dictAdd(dt, rqst, "abc", "abcd");
+    // dictFind(dt, rqst, "abc");
+    // dictReplace(dt, rqst, "abc", "ABCD");
+    // dictFind(dt, rqst, "abc");
+    // dictDelete(dt, rqst, "abc");
+    // dictFind(dt, rqst, "abc");
+
+
+    srand(time(NULL));
+    for (int i = 0; i < KEY_NUM; i++)
+    {
+        char k[5];
+        sprintf(k, "%d", i);
+        char v[5];
+        // sprintf(v, "%d", rand() % KEY_NUM);
+        sprintf(v, "%d", i);
+        
+        strcpy(node[i].val, v);
+        printf("key created: %s, val nodeptr at %#llx\n", k, &node[i]);
+        dictAdd(dt, rqst, k, (NodePtr)&node[i]);
+        dictFind(dt, rqst, k);
+    }
 
     for (int i = 0; i < NR_DPUS; i++)
     {

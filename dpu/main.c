@@ -33,8 +33,7 @@ typedef struct key__
 } key__;
 typedef struct value__
 {
-    unsigned int len;
-    char buf[VAL_BUF_SIZE];
+    NodePtr val;
 } value__;
 typedef struct request
 {
@@ -83,7 +82,7 @@ int main()
         switch (rqst[i].operate)
         {
         case INSERT:
-            ret = dictAdd(dt, rqst[i].key.buf, rqst[i].key.len, rqst[i].val.buf, rqst[i].val.len, rqst[i].bucket);
+            ret = dictAdd(dt, rqst[i].key.buf, rqst[i].key.len, rqst[i].val.val, rqst[i].bucket);
             if (ret == DICT_OK)
                 rpse[i].response = DICT_ADD_OK;
             else
@@ -94,10 +93,7 @@ int main()
             if (he)
             {
                 rpse[i].response = DICT_FIND_OK;
-                rpse[i].val.len = he->val->len;
-                char tmp[MRAM_STR_MAXLEN];
-                mram_str_copy_to(tmp, he->val->buf, he->val->len + 1);
-                mram_str_copy_from(rpse[i].val.buf,tmp,he->val->len + 1);
+                rpse[i].val.val = he->val;
             }
             else
                 rpse[i].response = DICT_FIND_ERR;
@@ -110,7 +106,7 @@ int main()
                 rpse[i].response = DICT_DELETE_ERR;
             break;
         case REPLACE:
-            ret = dictReplace(dt, rqst[2].key.buf, rqst[2].key.len, rqst[2].val.buf, rqst[2].val.len, rqst[2].bucket);
+            ret = dictReplace(dt, rqst[2].key.buf, rqst[2].key.len, rqst[2].val.val, rqst[2].bucket);
             if (ret == DICT_OK)
                 rpse[i].response = DICT_REPLACE_OK;
             else

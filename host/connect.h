@@ -26,6 +26,11 @@
 #define DICT_FIND_ERR 7
 
 #include <stddef.h>
+typedef struct Node 
+{
+    char val[10];
+} Node;
+typedef unsigned long long NodePtr;
 
 typedef struct key__
 {
@@ -34,8 +39,7 @@ typedef struct key__
 } key__;
 typedef struct value__
 {
-    unsigned int len;
-    char buf[VAL_BUF_SIZE];
+    NodePtr val;
 } value__;
 typedef struct request
 {
@@ -64,6 +68,6 @@ request_batch *requestInit();
 response_batch *responseInit();
 void requestReset(request_batch *rqst);
 void responseReset(response_batch *rpse);
-int requestAdd(request_batch *rqst, unsigned int dpu, unsigned int operate, unsigned int bucket, const char *key, const char *val);
+int requestAdd(request_batch *rqst, unsigned int dpu, unsigned int operate, unsigned int bucket, const char *key, const NodePtr val);
 void reponsePrint(response* rpse);
 #endif /* __DICT_H */

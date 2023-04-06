@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+
 void requestReset(request_batch *rqst)
 {
     int i;
@@ -32,7 +33,7 @@ response_batch *responseInit()
 }
 
 int requestAdd(request_batch *rqst, unsigned int dpu, unsigned int operate,
-               unsigned int bucket, const char *key, const char *val)
+               unsigned int bucket, const char *key, const NodePtr val)
 {
     if (dpu >= NR_DPUS || rqst->size[dpu] >= BATCH_SIZE)
         return CONNECT_ERR;
@@ -46,8 +47,7 @@ int requestAdd(request_batch *rqst, unsigned int dpu, unsigned int operate,
     }
     if (val)
     {
-        rqst->rqst[dpu * BATCH_SIZE + rqst->size[dpu]].val.len = strlen(val);
-        strcpy(rqst->rqst[dpu * BATCH_SIZE + rqst->size[dpu]].val.buf, val);
+        rqst->rqst[dpu * BATCH_SIZE + rqst->size[dpu]].val.val = val;
     }
     rqst->size[dpu]++;
     return CONNECT_OK;
@@ -77,7 +77,7 @@ void reponsePrint(response *rpse)
         break;
     case DICT_FIND_OK:
         printf("FIND succeed!\n");
-        printf("val:%s\n", rpse->val.buf);
+        printf("val addr: %#llx, node content: %s\n", rpse->val.val, ((Node*)(rpse->val.val))->val);
         break;
     case DICT_FIND_ERR:
         printf("NOT FIND!\n");
