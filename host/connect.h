@@ -4,7 +4,7 @@
 #define KEY_BUF_SIZE 16
 #define VAL_BUF_SIZE 32
 #define NR_DPUS 4
-#define BATCH_SIZE 8
+#define BATCH_SIZE 32768
 
 #define CONNECT_OK 0
 #define CONNECT_ERR 1

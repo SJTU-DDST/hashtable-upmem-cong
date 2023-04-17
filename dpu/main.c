@@ -6,7 +6,7 @@
 #include "mram_str.h"
 #include "dict.h"
 
-#define BATCH_SIZE 8
+#define BATCH_SIZE 32768
 #define KEY_BUF_SIZE 16
 #define VAL_BUF_SIZE 32
 

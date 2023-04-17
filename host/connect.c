@@ -58,7 +58,7 @@ void reponsePrint(response *rpse)
     switch (rpse->response)
     {
     case DICT_ADD_OK:
-        printf("ADD succeed!\n");
+        // printf("ADD succeed!\n");
         break;
     case DICT_ADD_ERR:
         printf("ADD fail!\n");
@@ -77,7 +77,7 @@ void reponsePrint(response *rpse)
         break;
     case DICT_FIND_OK:
         printf("FIND succeed!\n");
-        printf("val addr: %#llx, node content: %s\n", rpse->val.val, ((Node*)(rpse->val.val))->val);
+        // printf("val addr: %#llx, node content: %s\n", rpse->val.val, ((Node*)(rpse->val.val))->val);
         break;
     case DICT_FIND_ERR:
         printf("NOT FIND!\n");
