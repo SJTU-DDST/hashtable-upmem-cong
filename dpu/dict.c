@@ -66,24 +66,27 @@ int dictAdd(dict *ht, __mram_ptr char *key_, unsigned int key_len, NodePtr val_,
     __mram_ptr dictEntry *entry;
 
     char key[KEY_BUF_SIZE];
-    // char val[VAL_BUF_SIZE];
+    
     mram_str_copy_to(key, key_, key_len + 1);
-    // mram_str_copy_to(val, val_, val_len + 1);
-    /* Get the index of the new element, or -1 if
-     * the element already exists. */
+    // printf("%s ", key);
+    
+    // // mram_str_copy_to(val, val_, val_len + 1);
+    // /* Get the index of the new element, or -1 if
+    //  * the element already exists. */
     if ((index = _dictKeyIndex(ht, key, bucket)) == -1)
         return DICT_ERR;
 
-    /* Allocates the memory and stores key */
+    // /* Allocates the memory and stores key */
     entry = (__mram_ptr dictEntry *)mram_alloc(ht->allocator, sizeof(dictEntry));
     entry->next = (__mram_ptr dictEntry *)(ht->table[index]);
     ht->table[index] = (unsigned int)entry;
 
-    /* Set the hash entry fields. */
+    // /* Set the hash entry fields. */
     _dictSetHashKey(ht, entry, key);
     _dictSetHashVal(ht, entry, val_);
 
     ht->used++;
+    // printf("%d\n", ht->used);
     return DICT_OK;
 }
 

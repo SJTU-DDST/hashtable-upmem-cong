@@ -42,6 +42,11 @@ dict *dictInit()
     return ht;
 }
 
+int dictGetHashedKey(dict *ht, const char *key)
+{
+    return _dictKeyIndex(ht, key);
+}
+
 /* Add an element to the target hash table */
 int dictAdd(dict *ht, request_batch *rqst, const char *key_, NodePtr node_)
 {
@@ -49,7 +54,18 @@ int dictAdd(dict *ht, request_batch *rqst, const char *key_, NodePtr node_)
 
     index = _dictKeyIndex(ht, key_);
 
-    requestAdd(rqst, index / DICT_HT_INITIAL_SIZE_PER_PDU, INSERT, index % DICT_HT_INITIAL_SIZE_PER_PDU, key_, node_);
+    requestAdd(rqst, index % NR_DPUS, INSERT, 0, key_, node_);
+    return DICT_OK;
+}
+
+int dictAddSpecificDPU(dict *ht, request_batch *rqst, int dpu, const char *key_, NodePtr node_, int max_size_per_dpu)
+{
+    int index;
+
+    index = _dictKeyIndex(ht, key_);
+    // printf("index %d, dpu %d\n", index, dpu);
+
+    requestAddSpecificDPU(rqst, dictGetHashedKey(ht, key_) % NR_DPUS, INSERT, index, key_, node_, max_size_per_dpu);
     return DICT_OK;
 }
 
@@ -80,9 +96,23 @@ int dictFind(dict *ht, request_batch *rqst, const char *key_)
 
     index = _dictKeyIndex(ht, key_);
 
-    requestAdd(rqst, index / DICT_HT_INITIAL_SIZE_PER_PDU, FIND, index % DICT_HT_INITIAL_SIZE_PER_PDU, key_, NULL);
+    requestAdd(rqst, dictGetHashedKey(ht, key_) % NR_DPUS, FIND, index, key_, NULL);
     return DICT_OK;
 }
+
+int dictFindSpecificDPU(dict *ht, request_batch *rqst, int dpu, const char *key_, int max_size_per_dpu)
+{
+    int index;
+
+    index = _dictKeyIndex(ht, key_);
+
+    // printf("find index %d, dpu %d\n", index, dpu);
+
+    requestAddSpecificDPU(rqst, dpu, FIND, index, key_, NULL, max_size_per_dpu);
+
+    return DICT_OK;
+}
+
 /* ------------------------- private functions ------------------------------ */
 /* Our hash table capability is a power of two */
 static unsigned int _dictNextPower(unsigned int size)

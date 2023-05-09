@@ -4,15 +4,15 @@
 #define DICT_OK 0
 #define DICT_ERR 1
 
-#define KEY_BUF_SIZE 16
+#define KEY_BUF_SIZE 8
 #define VAL_BUF_SIZE 32
 /* This is the initial size of every hash table */
-#define DICT_HT_INITIAL_SIZE     32
+#define DICT_HT_INITIAL_SIZE     65536
 #include "mram_alloc.h"
 #include "mram_str.h"
 typedef struct Node 
 {
-    char val[10];
+    char val[8];
 } Node;
 typedef unsigned long long NodePtr;
 

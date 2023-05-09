@@ -6,8 +6,8 @@
 #include "mram_str.h"
 #include "dict.h"
 
-#define BATCH_SIZE 32768
-#define KEY_BUF_SIZE 16
+#define BATCH_SIZE 64 * 64
+#define KEY_BUF_SIZE 8
 #define VAL_BUF_SIZE 32
 
 // operate
@@ -50,7 +50,10 @@ typedef struct response
 
 /* Buffer in MRAM. */
 __host unsigned int rqst_size = 0;
+__mram_noinit unsigned int size[2];
 __mram_noinit request rqst[BATCH_SIZE];
+__mram_noinit unsigned int size_find[2];
+__mram_noinit request rqst_find[BATCH_SIZE];
 __host unsigned int rpse_size = 0;
 __mram_noinit response rpse[BATCH_SIZE];
 
@@ -67,6 +70,7 @@ __host dict *dt = NULL;
 
 int main()
 {
+    // printf("%d %d\n", size[0], size_find[0]);
     if (!(allocator && dt))
     {
         allocator = mem_alloc(sizeof(mram_allocator));
@@ -77,8 +81,9 @@ int main()
     int ret;
     __mram_ptr dictEntry *he;
 
-    for (int i = 0; i < rqst_size; i++)
+    for (int i = 0; i < size[0] + size_find[0]; i++)
     {
+        // printf("%d\n", i);
         switch (rqst[i].operate)
         {
         case INSERT:
@@ -98,62 +103,62 @@ int main()
             else
                 rpse[i].response = DICT_FIND_ERR;
             break;
-        case DELETE:
-            ret = dictDelete(dt, rqst[i].key.buf, rqst[i].key.len, rqst[i].bucket);
-            if (ret == DICT_OK)
-                rpse[i].response = DICT_DELETE_OK;
-            else
-                rpse[i].response = DICT_DELETE_ERR;
-            break;
-        case REPLACE:
-            ret = dictReplace(dt, rqst[2].key.buf, rqst[2].key.len, rqst[2].val.val, rqst[2].bucket);
-            if (ret == DICT_OK)
-                rpse[i].response = DICT_REPLACE_OK;
-            else
-                rpse[i].response = DICT_REPLACE_ERR;
-            break;
+//     //     case DELETE:
+//     //         ret = dictDelete(dt, rqst[i].key.buf, rqst[i].key.len, rqst[i].bucket);
+//     //         if (ret == DICT_OK)
+//     //             rpse[i].response = DICT_DELETE_OK;
+//     //         else
+//     //             rpse[i].response = DICT_DELETE_ERR;
+//     //         break;
+//     //     case REPLACE:
+//     //         ret = dictReplace(dt, rqst[2].key.buf, rqst[2].key.len, rqst[2].val.val, rqst[2].bucket);
+//     //         if (ret == DICT_OK)
+//     //             rpse[i].response = DICT_REPLACE_OK;
+//     //         else
+//     //             rpse[i].response = DICT_REPLACE_ERR;
+//     //         break;
         }
     }
-    rpse_size = rqst_size;
-    // int ret;
-    // ret = dictAdd(dt, rqst[0].key.buf, rqst[0].key.len, rqst[0].val.buf, rqst[0].val.len, rqst[0].bucket);
+//     // rpse_size = rqst_size;
+//     // // int ret;
+//     // // ret = dictAdd(dt, rqst[0].key.buf, rqst[0].key.len, rqst[0].val.buf, rqst[0].val.len, rqst[0].bucket);
 
-    // if (ret == DICT_OK)
-    // {
-    //     printf("ok!\n");
-    // }
+//     // // if (ret == DICT_OK)
+//     // // {
+//     // //     printf("ok!\n");
+//     // // }
 
-    // ret = dictAdd(dt, rqst[1].key.buf, rqst[1].key.len, rqst[1].val.buf, rqst[1].val.len, rqst[1].bucket);
+//     // // ret = dictAdd(dt, rqst[1].key.buf, rqst[1].key.len, rqst[1].val.buf, rqst[1].val.len, rqst[1].bucket);
 
-    // if (ret == DICT_OK)
-    // {
-    //     printf("ok!\n");
-    // }
+//     // // if (ret == DICT_OK)
+//     // // {
+//     // //     printf("ok!\n");
+//     // // }
 
-    // ret = dictReplace(dt, rqst[2].key.buf, rqst[2].key.len, rqst[2].val.buf, rqst[2].val.len, rqst[2].bucket);
+//     // // ret = dictReplace(dt, rqst[2].key.buf, rqst[2].key.len, rqst[2].val.buf, rqst[2].val.len, rqst[2].bucket);
 
-    // if (ret == DICT_OK)
-    // {
-    //     printf("ok!\n");
-    // }
-    // __mram_ptr dictEntry *he;
-    // he = dictFind(dt, rqst[3].key.buf, rqst[3].key.len, rqst[3].bucket);
-    // if (he)
-    // {
-    //     mram_str_print(he->val);
-    // }
+//     // // if (ret == DICT_OK)
+//     // // {
+//     // //     printf("ok!\n");
+//     // // }
+//     // // __mram_ptr dictEntry *he;
+//     // // he = dictFind(dt, rqst[3].key.buf, rqst[3].key.len, rqst[3].bucket);
+//     // // if (he)
+//     // // {
+//     // //     mram_str_print(he->val);
+//     // // }
 
-    // ret = dictDelete(dt, rqst[4].key.buf, rqst[4].key.len, rqst[4].bucket);
+//     // // ret = dictDelete(dt, rqst[4].key.buf, rqst[4].key.len, rqst[4].bucket);
 
-    // if (ret == DICT_OK)
-    // {
-    //     printf("ok!\n");
-    // }
+//     // // if (ret == DICT_OK)
+//     // // {
+//     // //     printf("ok!\n");
+//     // // }
 
-    // he = dictFind(dt, rqst[5].key.buf, rqst[5].key.len, rqst[5].bucket);
-    // if (he)
-    // {
-    //     mram_str_print(he->val);
-    // }
+//     // // he = dictFind(dt, rqst[5].key.buf, rqst[5].key.len, rqst[5].bucket);
+//     // // if (he)
+//     // // {
+//     // //     mram_str_print(he->val);
+//     // // }
     return 0;
 }

@@ -3,8 +3,7 @@
 
 #define KEY_BUF_SIZE 8
 #define VAL_BUF_SIZE 32
-#define NR_DPUS 256
-#define BATCH_SIZE 64 * 64
+#define BATCH_SIZE (64 * 64 * 64 * 8)
 
 #define CONNECT_OK 0
 #define CONNECT_ERR 1
@@ -55,21 +54,19 @@ typedef struct response
 } response;
 typedef struct request_batch
 {
-    unsigned int size[NR_DPUS];
-    request rqst[BATCH_SIZE * NR_DPUS];
+    unsigned int size[1];
+    request rqst[BATCH_SIZE];
 } request_batch;
 typedef struct response_batch
 {
-    unsigned int size[NR_DPUS];
-    response rpse[BATCH_SIZE * NR_DPUS];
+    unsigned int size[1];
+    response rpse[BATCH_SIZE];
 } response_batch;
 
 request_batch *requestInit();
 response_batch *responseInit();
 void requestReset(request_batch *rqst);
 void responseReset(response_batch *rpse);
-int requestAdd(request_batch *rqst, unsigned int dpu, unsigned int operate, unsigned int bucket, const char *key, const NodePtr val);
-int requestAddSpecificDPU(request_batch *rqst, unsigned int dpu, unsigned int operate, unsigned int bucket, const char *key, const NodePtr val, int max_size_per_dpu);
-
+int requestAdd(request_batch *rqst, unsigned int operate, unsigned int bucket, const char *key, const NodePtr val);
 void reponsePrint(response *rpse);
 #endif /* __DICT_H */

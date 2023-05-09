@@ -1,5 +1,9 @@
 BUILDDIR ?= build
 
+CPU_BINARY=${BUILDDIR}/cpu_baseline
+CPU_SOURCES=$(wildcard cpu/*.c)
+CPU_HEADERS=$(wildcard cpu/*.h)
+
 HOST_BINARY=${BUILDDIR}/host_app
 HOST_SOURCES=$(wildcard host/*.c)
 HOST_HEADERS=$(wildcard host/*.h)
@@ -20,6 +24,16 @@ __dirs := $(shell mkdir -p ${BUILDDIR})
 all: ${HOST_BINARY} ${DPU_BINARY} tools
 clean:
 	rm -rf ${BUILDDIR}
+
+###
+### CPU baseline
+###
+CFLAGS=-g -O2 -std=c99 `dpu-pkg-config --cflags --libs dpu` -DNR_TASKLETS=${NR_TASKLETS}
+LDFLAGS=`dpu-pkg-config --libs dpu`
+
+cpu_baseline: ${CPU_BINARY}
+${CPU_BINARY}: ${CPU_SOURCES} ${CPU_HEADERS}
+	$(CC) -o $@ ${CPU_SOURCES} $(LDFLAGS) $(CFLAGS)
 
 ###
 ### HOST APPLICATION
