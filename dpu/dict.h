@@ -1,6 +1,18 @@
 #ifndef __DICT_H
 #define __DICT_H
 
+#define NR_DPUS 1024
+#define NR_DPUS_BITS 10
+// #define BATCH_SIZE 64 * 64
+// #define BATCH_SIZE 64
+// #define KEY_NUM (1 << 16)
+#define KEY_NUM (1 << 16)//数字大比如1 << 16就会出问题
+#define FIND_NUM (1 << 16)
+// #define MAX_QUERY_PER_DPU (KEY_NUM>>(NR_DPUS_BITS-1))//设置的稍微大一些，因为并不是每个dpu的request都一样，比如一个batch为64K，64个dpu，要设置的大于1024才行
+#define MAX_QUERY_PER_DPU (KEY_NUM>>(NR_DPUS_BITS-1))//设置的稍微大一些，因为并不是每个dpu的request都一样，比如一个batch为64K，64个dpu，要设置的大于1024才行
+#define BATCH_SIZE (MAX_QUERY_PER_DPU)
+
+
 #define DICT_OK 0
 #define DICT_ERR 1
 
@@ -47,11 +59,11 @@ typedef struct dict {
 
 /* API */
 int dictInit(dict *ht,mram_allocator *alloc);
-int dictAdd(dict *ht, __mram_ptr char *key_,unsigned int key_len, NodePtr val_, unsigned int bucket);
-int dictReplace(dict *ht, __mram_ptr char *key_,unsigned int key_len, NodePtr val_, unsigned int bucket);
-int dictDelete(dict *ht,__mram_ptr char *key_,unsigned int key_len, unsigned int bucket);
+int dictAdd(dict *ht, __mram_ptr char *key_,unsigned int key_len, NodePtr val_);
+int dictReplace(dict *ht, __mram_ptr char *key_,unsigned int key_len, NodePtr val_);
+int dictDelete(dict *ht,__mram_ptr char *key_,unsigned int key_len);
 void dictRelease(dict *ht);
-__mram_ptr dictEntry * dictFind(dict *ht,__mram_ptr char *key_,unsigned int key_len,unsigned int bucket);
+__mram_ptr dictEntry * dictFind(dict *ht,__mram_ptr char *key_,unsigned int key_len);
 unsigned int dictGenHashFunction(const char *buf, int len);
 void dictEmpty(dict *ht);
 

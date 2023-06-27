@@ -33,16 +33,18 @@ response_batch *responseInit()
 }
 
 int requestAdd(request_batch *rqst, unsigned int dpu, unsigned int operate,
-               unsigned int bucket, const char *key, const NodePtr val)
+                const char *key, const NodePtr val)
 {
     if (dpu >= NR_DPUS || rqst->size[dpu] >= BATCH_SIZE)
     {
-        printf("connect err");
+        printf("requestAdd dpu: %d\n", dpu);
+        printf("requestAdd rqst->size[dpu]: %d\n", rqst->size[dpu]);
+        printf("requestAdd connect err\n");
         return CONNECT_ERR;
     }
 
     rqst->rqst[dpu * BATCH_SIZE + rqst->size[dpu]].operate = operate;
-    rqst->rqst[dpu * BATCH_SIZE + rqst->size[dpu]].bucket = bucket;
+    // rqst->rqst[dpu * BATCH_SIZE + rqst->size[dpu]].bucket = bucket;
     if (key)
     {
         rqst->rqst[dpu * BATCH_SIZE + rqst->size[dpu]].key.len = strlen(key);
@@ -57,16 +59,19 @@ int requestAdd(request_batch *rqst, unsigned int dpu, unsigned int operate,
 }
 
 int requestAddSpecificDPU(request_batch *rqst, unsigned int dpu, unsigned int operate,
-                          unsigned int bucket, const char *key, const NodePtr val, int max_size_per_dpu)
+                           const char *key, const NodePtr val, int max_size_per_dpu)
 {
-    if (dpu >= NR_DPUS || rqst->size[dpu] >= max_size_per_dpu)
+    if (dpu >= NR_DPUS || rqst->size[dpu] > max_size_per_dpu)
     {
-        printf("connect err");
+        printf("requestAddSpecificDPU dpu: %d\n", dpu);
+        printf("requestAddSpecificDPU rqst->size[dpu]: %d\n", rqst->size[dpu]);
+        printf("requestAddSpecificDPU max_size_per_dpu: %d\n", max_size_per_dpu);
+        printf("requestAddSpecificDPU connect err\n");
         return CONNECT_ERR;
     }
 
     rqst->rqst[dpu * max_size_per_dpu + rqst->size[dpu]].operate = operate;
-    rqst->rqst[dpu * max_size_per_dpu + rqst->size[dpu]].bucket = bucket;
+    // rqst->rqst[dpu * max_size_per_dpu + rqst->size[dpu]].bucket = bucket;//bucket就是dpu
     if (key)
     {
         rqst->rqst[dpu * max_size_per_dpu + rqst->size[dpu]].key.len = strlen(key);

@@ -9,7 +9,7 @@ static void _dictReset(dict *ht)
 /* -------------------------- private prototypes ---------------------------- */
 
 static unsigned int _dictNextPower(unsigned int size);
-static int _dictKeyIndex(dict *ht, const char *key, unsigned int bucket);
+int dictGetHashedKey(dict *ht, const char *key);
 static void _dictSetHashKey(dict *ht, __mram_ptr dictEntry *entry, const char *key_);
 static void _dictSetHashVal(dict *ht, __mram_ptr dictEntry *entry, NodePtr val_);
 static unsigned int _dictStringCopyHTHashFunction(const char *key);
@@ -17,17 +17,17 @@ static int _dictStringCopyHTKeyCompare(const char *key1, const __mram_ptr mram_s
 
 /* -------------------------- hash functions -------------------------------- */
 
-/* Thomas Wang's 32 bit Mix Function */
-unsigned int dictIntHashFunction(unsigned int key)
-{
-    key += ~(key << 15);
-    key ^= (key >> 10);
-    key += (key << 3);
-    key ^= (key >> 6);
-    key += ~(key << 11);
-    key ^= (key >> 16);
-    return key;
-}
+// /* Thomas Wang's 32 bit Mix Function */
+// unsigned int dictIntHashFunction(unsigned int key)
+// {
+//     key += ~(key << 15);
+//     key ^= (key >> 10);
+//     key += (key << 3);
+//     key ^= (key >> 6);
+//     key += ~(key << 11);
+//     key ^= (key >> 16);
+//     return key;
+// }
 
 /* Identity hash function for integer keys */
 unsigned int dictIdentityHashFunction(unsigned int key)
@@ -35,16 +35,16 @@ unsigned int dictIdentityHashFunction(unsigned int key)
     return key;
 }
 
-/* Generic hash function (a popular one from Bernstein).
- * I tested a few and this was the best. */
-unsigned int dictGenHashFunction(const char *buf, int len)
-{
-    unsigned int hash = 5381;
+// /* Generic hash function (a popular one from Bernstein).
+//  * I tested a few and this was the best. */
+// unsigned int dictGenHashFunction(const char *buf, int len)
+// {
+//     unsigned int hash = 5381;
 
-    while (len--)
-        hash = ((hash << 5) + hash) + (*buf++); /* hash * 33 + c */
-    return hash;
-}
+//     while (len--)
+//         hash = ((hash << 5) + hash) + (*buf++); /* hash * 33 + c */
+//     return hash;
+// }
 
 /* ----------------------------- API implementation ------------------------- */
 /* Initialize the hash table */
@@ -60,26 +60,26 @@ int dictInit(dict *ht, mram_allocator *alloc)
 }
 
 /* Add an element to the target hash table */
-int dictAdd(dict *ht, __mram_ptr char *key_, unsigned int key_len, NodePtr val_, unsigned int bucket)
+int dictAdd(dict *ht, __mram_ptr char *key_, unsigned int key_len, NodePtr val_)
 {
-    int index;
     __mram_ptr dictEntry *entry;
 
     char key[KEY_BUF_SIZE];
     
     mram_str_copy_to(key, key_, key_len + 1);
+    int bucket= dictGetHashedKey(ht, key);
     // printf("%s ", key);
     
     // // mram_str_copy_to(val, val_, val_len + 1);
     // /* Get the index of the new element, or -1 if
     //  * the element already exists. */
-    if ((index = _dictKeyIndex(ht, key, bucket)) == -1)
-        return DICT_ERR;
+    // if ((index = dictGetHashedKey(ht, key, bucket)) == -1)
+    //     return DICT_ERR;
 
     // /* Allocates the memory and stores key */
     entry = (__mram_ptr dictEntry *)mram_alloc(ht->allocator, sizeof(dictEntry));
-    entry->next = (__mram_ptr dictEntry *)(ht->table[index]);
-    ht->table[index] = (unsigned int)entry;
+    entry->next = (__mram_ptr dictEntry *)(ht->table[bucket]);
+    ht->table[bucket] = (unsigned int)entry;
 
     // /* Set the hash entry fields. */
     _dictSetHashKey(ht, entry, key);
@@ -91,7 +91,7 @@ int dictAdd(dict *ht, __mram_ptr char *key_, unsigned int key_len, NodePtr val_,
 }
 
 /* Add an element, discarding the old if the key already exists */
-int dictReplace(dict *ht, __mram_ptr char *key_, unsigned int key_len, NodePtr val_, unsigned int bucket)
+int dictReplace(dict *ht, __mram_ptr char *key_, unsigned int key_len, NodePtr new_val_)
 {
     __mram_ptr dictEntry *entry;
 
@@ -102,17 +102,17 @@ int dictReplace(dict *ht, __mram_ptr char *key_, unsigned int key_len, NodePtr v
     // char val[VAL_BUF_SIZE];
     // mram_str_copy_to(val, val_, val_len + 1);
     /* It already exists, get the entry */
-    entry = dictFind(ht, key_, key_len, bucket);
+    entry = dictFind(ht, key_, key_len);
     if (!entry)
         return DICT_ERR;
     /* Free the old value and set the new one */
     // dictFreeEntryVal(ht, entry);
-    dictSetHashVal(ht, entry, val_);
+    dictSetHashVal(ht, entry, new_val_);
     return DICT_OK;
 }
 
 /* Search and remove an element */
-static int dictGenericDelete(dict *ht, __mram_ptr char *key_, unsigned int key_len, unsigned int bucket, int nofree)
+static int dictGenericDelete(dict *ht, __mram_ptr char *key_, unsigned int key_len, int nofree)
 {
     unsigned int h;
     __mram_ptr dictEntry *he, *prevHe;
@@ -121,7 +121,7 @@ static int dictGenericDelete(dict *ht, __mram_ptr char *key_, unsigned int key_l
     mram_str_copy_to(key, key_, key_len + 1);
     if (ht->size == 0)
         return DICT_ERR;
-    h = bucket;
+    h = dictGetHashedKey(ht, key);
     he = (__mram_ptr dictEntry *)(ht->table[h]);
 
     prevHe = NULL;
@@ -149,9 +149,9 @@ static int dictGenericDelete(dict *ht, __mram_ptr char *key_, unsigned int key_l
     return DICT_ERR; /* not found */
 }
 
-int dictDelete(dict *ht, __mram_ptr char *key_, unsigned int key_len, unsigned int bucket)
+int dictDelete(dict *ht, __mram_ptr char *key_, unsigned int key_len)
 {
-    return dictGenericDelete(ht, key_, key_len, bucket, 0);
+    return dictGenericDelete(ht, key_, key_len, 0);
 }
 
 /* Destroy an entire hash table */
@@ -189,7 +189,7 @@ void dictRelease(dict *ht)
     mram_free(ht->allocator, (__mram_ptr void *)(ht->table));
 }
 
-__mram_ptr dictEntry *dictFind(dict *ht, __mram_ptr char *key_, unsigned int key_len, unsigned int bucket)
+__mram_ptr dictEntry *dictFind(dict *ht, __mram_ptr char *key_, unsigned int key_len)
 {
     __mram_ptr dictEntry *he;
     unsigned int h;
@@ -197,7 +197,7 @@ __mram_ptr dictEntry *dictFind(dict *ht, __mram_ptr char *key_, unsigned int key
     mram_str_copy_to(key, key_, key_len + 1);
     if (ht->size == 0)
         return (__mram_ptr dictEntry *)NULL;
-    h = bucket;
+    h = dictGetHashedKey(ht, key);;
     he = (__mram_ptr dictEntry *)(ht->table[h]);
     while (he)
     {
@@ -226,22 +226,23 @@ static unsigned int _dictNextPower(unsigned int size)
 /* Returns the index of a free slot that can be populated with
  * an hash entry for the given 'key'.
  * If the key already exists, -1 is returned. */
-static int _dictKeyIndex(dict *ht, const char *key, unsigned int bucket)
+int dictGetHashedKey(dict *ht, const char *key)
 {
-    unsigned int h;
-    __mram_ptr dictEntry *he;
+    // unsigned int h;
+    // __mram_ptr dictEntry *he;
 
-    /* Compute the key hash value */
-    h = bucket;
-    /* Search if this slot does not already contain the given key */
-    he = (__mram_ptr dictEntry *)(ht->table[h]);
-    while (he)
-    {
-        if (dictCompareHashKeys(key, he->key))
-            return -1;
-        he = he->next;
-    }
-    return h;
+    // /* Compute the key hash value */
+    // h = bucket;
+    // /* Search if this slot does not already contain the given key */
+    // he = (__mram_ptr dictEntry *)(ht->table[h]);
+    // while (he)
+    // {
+    //     if (dictCompareHashKeys(key, he->key))
+    //         return -1;
+    //     he = he->next;
+    // }
+    // return h;
+    return atoi(key)>>NR_DPUS_BITS;
 }
 
 void dictEmpty(dict *ht)

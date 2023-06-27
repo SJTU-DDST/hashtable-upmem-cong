@@ -6,8 +6,8 @@
 static unsigned int _dictNextPower(unsigned int size);
 static void _dictSetHashKey(dict *ht, dictEntry *entry, const char *key_);
 static void _dictSetHashVal(dict *ht, dictEntry *entry, NodePtr val_);
-static int _dictKeyIndex(dict *ht, const char *key);
-static int _dictKeyIndexCPU(dict *ht, const char *key, unsigned int bucket);
+static int dictGetHashedKey(dict *ht, const char *key);
+static int dictGetHashedKeyCPU(dict *ht, const char *key, unsigned int bucket);
 
 /* -------------------------- hash functions -------------------------------- */
 
@@ -49,7 +49,7 @@ dict *dictInit()
 
 int dictGetHashedKey(dict *ht, const char *key)
 {
-    return _dictKeyIndex(ht, key);
+    return dictGetHashedKey(ht, key);
 }
 
 /* Add an element to the target hash table */
@@ -57,7 +57,7 @@ int dictAdd(dict *ht, request_batch *rqst, const char *key_, NodePtr node_)
 {
     int index;
 
-    index = _dictKeyIndex(ht, key_);
+    index = dictGetHashedKey(ht, key_);
 
     // printf("%d\n", index);
 
@@ -79,7 +79,7 @@ int dictAddCPU(dict *ht, char *key_, unsigned int key_len, NodePtr val_, unsigne
     // // mram_str_copy_to(val, val_, val_len + 1);
     // /* Get the index of the new element, or -1 if
     //  * the element already exists. */
-    if ((index = _dictKeyIndexCPU(ht, key, bucket)) == -1)
+    if ((index = dictGetHashedKeyCPU(ht, key, bucket)) == -1)
         return DICT_ERR;
 
     // /* Allocates the memory and stores key */
@@ -100,7 +100,7 @@ int dictAddCPU(dict *ht, char *key_, unsigned int key_len, NodePtr val_, unsigne
 // {
 //     int index;
 
-//     index = _dictKeyIndex(ht, key_);
+//     index = dictGetHashedKey(ht, key_);
 
 //     requestAdd(rqst, index / DICT_HT_INITIAL_SIZE_PER_PDU, REPLACE, index % DICT_HT_INITIAL_SIZE_PER_PDU, key_, val_);
 //     return DICT_OK;
@@ -110,7 +110,7 @@ int dictAddCPU(dict *ht, char *key_, unsigned int key_len, NodePtr val_, unsigne
 // {
 //     int index;
 
-//     index = _dictKeyIndex(ht, key_);
+//     index = dictGetHashedKey(ht, key_);
 
 //     requestAdd(rqst, index / DICT_HT_INITIAL_SIZE_PER_PDU, DELETE, index % DICT_HT_INITIAL_SIZE_PER_PDU, key_, NULL);
 //     return DICT_OK;
@@ -120,7 +120,7 @@ int dictFind(dict *ht, request_batch *rqst, const char *key_)
 {
     int index;
 
-    index = _dictKeyIndex(ht, key_);
+    index = dictGetHashedKey(ht, key_);
 
     requestAdd(rqst, FIND, index, key_, NULL);
     return DICT_OK;
@@ -167,7 +167,7 @@ static unsigned int _dictNextPower(unsigned int size)
 /* Returns the index of a free slot that can be populated with
  * an hash entry for the given 'key'.
  * If the key already exists, -1 is returned. */
-static int _dictKeyIndex(dict *ht, const char *key)
+static int dictGetHashedKey(dict *ht, const char *key)
 {
     unsigned int h;
 
@@ -180,7 +180,7 @@ static int _dictKeyIndex(dict *ht, const char *key)
 /* Returns the index of a free slot that can be populated with
  * an hash entry for the given 'key'.
  * If the key already exists, -1 is returned. */
-static int _dictKeyIndexCPU(dict *ht, const char *key, unsigned int bucket)
+static int dictGetHashedKeyCPU(dict *ht, const char *key, unsigned int bucket)
 {
     unsigned int h;
     dictEntry *he;

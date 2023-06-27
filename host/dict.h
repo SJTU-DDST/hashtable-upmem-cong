@@ -7,6 +7,7 @@
 #define DICT_HT_INITIAL_SIZE_PER_PDU 512
 #define DICT_HT_INITIAL_SIZE (DICT_HT_INITIAL_SIZE_PER_PDU * NR_DPUS)
 #include "connect.h"
+#include <stdlib.h>
 typedef struct dict
 {
     unsigned int size;

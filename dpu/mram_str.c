@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 
+//void mram_str_copy_from(__mram_ptr char *dst, const char *src, size_t size)
 void mram_str_copy_from(__mram_ptr char *dst, const char *src, size_t size)
 {
     int i;
@@ -10,6 +11,8 @@ void mram_str_copy_from(__mram_ptr char *dst, const char *src, size_t size)
         dst[i] = src[i];
     }
 }
+
+//void mram_str_copy_to(char *dst, const __mram_ptr char *src, size_t size)
 void mram_str_copy_to(char *dst, const __mram_ptr char *src, size_t size)
 {
     int i;

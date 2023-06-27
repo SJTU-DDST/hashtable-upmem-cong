@@ -6,7 +6,7 @@
 #include "mram_str.h"
 #include "dict.h"
 
-#define BATCH_SIZE 64 * 64
+
 #define KEY_BUF_SIZE 8
 #define VAL_BUF_SIZE 32
 
@@ -38,7 +38,7 @@ typedef struct value__
 typedef struct request
 {
     unsigned int operate; // 0:insert,1:find,2:delete,3:replace
-    unsigned int bucket;
+    // unsigned int bucket;
     key__ key;
     value__ val;
 } request;
@@ -49,7 +49,7 @@ typedef struct response
 } response;
 
 /* Buffer in MRAM. */
-__host unsigned int rqst_size = 0;
+// __host unsigned int rqst_size = 0;
 __mram_noinit unsigned int size[2];
 __mram_noinit request rqst[BATCH_SIZE];
 __mram_noinit unsigned int size_find[2];
@@ -70,6 +70,8 @@ __host dict *dt = NULL;
 
 int main()
 {
+    printf("huayifan dpu1\n");
+
     // printf("%d %d\n", size[0], size_find[0]);
     if (!(allocator && dt))
     {
@@ -81,20 +83,20 @@ int main()
     int ret;
     __mram_ptr dictEntry *he;
 
-    for (int i = 0; i < size[0] + size_find[0]; i++)
+    for (int i = 0; i < size[0]; i++)
     {
         // printf("%d\n", i);
         switch (rqst[i].operate)
         {
         case INSERT:
-            ret = dictAdd(dt, rqst[i].key.buf, rqst[i].key.len, rqst[i].val.val, rqst[i].bucket);
+            ret = dictAdd(dt, rqst[i].key.buf, rqst[i].key.len, rqst[i].val.val);
             if (ret == DICT_OK)
                 rpse[i].response = DICT_ADD_OK;
             else
                 rpse[i].response = DICT_ADD_ERR;
             break;
         case FIND:
-            he = dictFind(dt, rqst[i].key.buf, rqst[i].key.len, rqst[i].bucket);
+            he = dictFind(dt, rqst[i].key.buf, rqst[i].key.len);
             if (he)
             {
                 rpse[i].response = DICT_FIND_OK;
