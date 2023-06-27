@@ -27,3 +27,5 @@ make
 ./build/host_app
 ```
 
+## 参数
+参数在dpu中的dict.h，host中的connect.h
